@@ -1,6 +1,7 @@
 """A minimal FastAPI app with deliberate bugs for testing the agency."""
 
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI(title="Agency Playground")
 
@@ -18,19 +19,23 @@ _next_id = 4
 def health():
     from fastapi.responses import JSONResponse
     # BUG: Should return status_code=200, not 418
-    return JSONResponse(content={"status": "ok"}, status_code=418)
+    return JSONResponse(content={"status": "ok"}, status_code=200)
 
 
 # ----- BUG #2: No input validation — crashes on missing fields -----
+class UserIn(BaseModel):
+    name: str
+    email: str
+
+
 @app.post("/users")
-def create_user(body: dict):
+def create_user(body: UserIn):
     global _next_id
-    # BUG: Directly accesses body["name"] and body["email"] without validation.
-    # If either is missing, this will raise a KeyError and return a 500.
+    # Validated by Pydantic
     user = {
         "id": _next_id,
-        "name": body["name"],
-        "email": body["email"],
+        "name": body.name,
+        "email": body.email,
     }
     _users[_next_id] = user
     _next_id += 1
@@ -43,7 +48,7 @@ def get_user(user_id: int):
     # BUG: Looks up (user_id - 1) instead of user_id.
     # So GET /users/1 returns user 0 (doesn't exist) → 404
     # and GET /users/2 returns user 1 (Alice) instead of Bob.
-    actual_id = user_id - 1  # <-- off-by-one bug
+    actual_id = user_id  # <-- fixed off-by-one bug
     user = _users.get(actual_id)
     if user is None:
         from fastapi.responses import JSONResponse
@@ -52,8 +57,11 @@ def get_user(user_id: int):
 
 
 # ----- FEATURE #1: DELETE endpoint — tests exist but endpoint is missing -----
-# TODO: Implement DELETE /users/{user_id}
-# The tests in tests/test_app.py expect this endpoint to:
-# 1. Delete the user with the given ID
-# 2. Return {"deleted": true, "id": <user_id>} with status 200
-# 3. Return 404 if the user doesn't exist
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int):
+    if user_id not in _users:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(content={"error": "not found"}, status_code=404)
+    
+    del _users[user_id]
+    return {"deleted": True, "id": user_id}
