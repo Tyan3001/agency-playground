@@ -14,15 +14,15 @@ _users: dict[int, dict] = {
 _next_id = 4
 
 
-# ----- BUG #1: Returns 418 (I'm a teapot) instead of 200 -----
+# ----- FIXED #1: Returns 200 (OK) -----
 @app.get("/health")
 def health():
     from fastapi.responses import JSONResponse
-    # BUG: Should return status_code=200, not 418
+    # Fixed: Returns status_code=200
     return JSONResponse(content={"status": "ok"}, status_code=200)
 
 
-# ----- BUG #2: No input validation — crashes on missing fields -----
+# ----- FIXED #2: Input validation via Pydantic -----
 class UserIn(BaseModel):
     name: str
     email: str
