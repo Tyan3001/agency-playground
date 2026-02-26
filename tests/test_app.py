@@ -79,7 +79,7 @@ class TestGetUser:
 
 class TestDeleteUser:
     def test_delete_existing_user(self):
-        """FEATURE #1: DELETE endpoint doesn't exist yet."""
+        """FEATURE #1: Implemented - DELETE endpoint deletes user."""
         # First create a user to delete
         create_resp = client.post(
             "/users", json={"name": "ToDelete", "email": "del@test.com"}
@@ -92,12 +92,12 @@ class TestDeleteUser:
         assert resp.json()["id"] == user_id
 
     def test_delete_nonexistent_user(self):
-        """FEATURE #1: DELETE endpoint doesn't exist yet."""
+        """FEATURE #1: Implemented - DELETE nonexistent user returns 404."""
         resp = client.delete("/users/9999")
         assert resp.status_code == 404
 
     def test_delete_then_get_returns_404(self):
-        """FEATURE #1: After deletion, GET should return 404."""
+        """FEATURE #1: Implemented - After deletion, GET should return 404."""
         create_resp = client.post(
             "/users", json={"name": "DeleteMe", "email": "dm@test.com"}
         )
