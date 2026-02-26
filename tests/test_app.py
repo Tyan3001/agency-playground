@@ -16,7 +16,7 @@ client = TestClient(app)
 
 class TestHealth:
     def test_health_returns_200(self):
-        """BUG #1: Currently returns 418 instead of 200."""
+        """Health check returns 200 OK (Fixed BUG #1)."""
         resp = client.get("/health")
         assert resp.status_code == 200
 
@@ -38,17 +38,17 @@ class TestCreateUser:
         assert "id" in data
 
     def test_create_user_missing_email_returns_422(self):
-        """BUG #2: Currently crashes with 500 instead of returning 422."""
+        """BUG #2: Fixed - returns 422 on missing email."""
         resp = client.post("/users", json={"name": "NoEmail"})
         assert resp.status_code == 422
 
     def test_create_user_missing_name_returns_422(self):
-        """BUG #2: Currently crashes with 500 instead of returning 422."""
+        """BUG #2: Fixed - returns 422 on missing name."""
         resp = client.post("/users", json={"email": "no-name@test.com"})
         assert resp.status_code == 422
 
     def test_create_user_empty_body_returns_422(self):
-        """BUG #2: Currently crashes with 500 instead of returning 422."""
+        """BUG #2: Fixed - returns 422 on empty body."""
         resp = client.post("/users", json={})
         assert resp.status_code == 422
 
@@ -58,13 +58,13 @@ class TestCreateUser:
 
 class TestGetUser:
     def test_get_existing_user(self):
-        """BUG #3: Off-by-one means GET /users/1 returns 404 instead of Alice."""
+        """BUG #3: Fixed - GET /users/1 returns Alice."""
         resp = client.get("/users/1")
         assert resp.status_code == 200
         assert resp.json()["name"] == "Alice"
 
     def test_get_user_2_is_bob(self):
-        """BUG #3: Off-by-one means GET /users/2 returns Alice instead of Bob."""
+        """BUG #3: Fixed - GET /users/2 returns Bob."""
         resp = client.get("/users/2")
         assert resp.status_code == 200
         assert resp.json()["name"] == "Bob"

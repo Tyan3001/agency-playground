@@ -20,7 +20,7 @@ def health():
     return {"status": "ok"}
 
 
-# ----- BUG #2: No input validation — crashes on missing fields -----
+# ----- BUG #2: Input validation handled by Pydantic -----
 class UserIn(BaseModel):
     name: str
     email: str
@@ -40,13 +40,11 @@ def create_user(body: UserIn):
     return user
 
 
-# ----- BUG #3: Off-by-one error in user lookup -----
+# ----- BUG #3: User lookup -----
 @app.get("/users/{user_id}")
 def get_user(user_id: int):
-    # BUG: Looks up (user_id - 1) instead of user_id.
-    # So GET /users/1 returns user 0 (doesn't exist) → 404
-    # and GET /users/2 returns user 1 (Alice) instead of Bob.
-    actual_id = user_id  # <-- fixed off-by-one bug
+    # Fixed off-by-one bug
+    actual_id = user_id
     user = _users.get(actual_id)
     if user is None:
         from fastapi.responses import JSONResponse
