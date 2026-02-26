@@ -14,12 +14,10 @@ _users: dict[int, dict] = {
 _next_id = 4
 
 
-# ----- BUG #1: Returns 418 (I'm a teapot) instead of 200 -----
+# ----- Health Check -----
 @app.get("/health")
 def health():
-    from fastapi.responses import JSONResponse
-    # BUG: Should return status_code=200, not 418
-    return JSONResponse(content={"status": "ok"}, status_code=200)
+    return {"status": "ok"}
 
 
 # ----- BUG #2: No input validation — crashes on missing fields -----
